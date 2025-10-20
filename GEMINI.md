@@ -2,37 +2,37 @@
 
 **Speak in Japanese!!**
 
-## Project Overview
+## プロジェクト概要
 
-This project is for the Kaggle competition "House Prices: Advanced Regression Techniques". The goal is to predict the sales price of residential homes in Ames, Iowa, based on 79 explanatory variables describing various aspects of the homes.
+このプロジェクトは、Kaggleのコンペティション「[House Prices: Advanced Regression Techniques](https://www.kaggle.com/c/house-prices-advanced-regression-techniques)」のためのものです。目的は、アイオワ州エイムズ市の住宅に関する79種類の説明変数に基づき、住宅の販売価格を予測することです。
 
-This is a regression problem. The evaluation metric for this competition is the Root-Mean-Squared-Error (RMSE) between the logarithm of the predicted value and the logarithm of the observed sales price.
+これは回帰問題であり、評価指標は、予測値の対数と観測された販売価格の対数との間の二乗平均平方根誤差（RMSE）です。
 
-## Getting Started
+## 利用開始
 
-### 1. Download the Data
+### 1. データのダウンロード
 
-This project uses the official Kaggle CLI to download and manage the dataset.
+このプロジェクトでは、公式のKaggle CLIを使用してデータセットをダウンロード・管理します。
 
-**Prerequisites:**
-1.  **Install Kaggle CLI:** If you haven't already, install the library:
+**前提条件:**
+1.  **Kaggle CLIのインストール:** もしまだなら、ライブラリをインストールします。
     ```bash
     pip install kaggle
     ```
-2.  **API Credentials:** You need to have your Kaggle API credentials (`kaggle.json`) set up. You can get this from your Kaggle account page under the "API" section.
-3.  **Accept Competition Rules:** Before downloading, you must accept the competition rules on the Kaggle website:
+2.  **API認証情報:** KaggleアカウントページからAPI認証情報（`kaggle.json`）をセットアップしておく必要があります。
+3.  **コンペ規約への同意:** ダウンロードの前に、Kaggleのウェブサイトでコンペティションの規約に同意する必要があります。
     [https://www.kaggle.com/c/house-prices-advanced-regression-techniques/rules](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/rules)
 
-**Download Command:**
-Once the prerequisites are met, run the following command from the project root to download the data into the `data/` directory:
+**ダウンロードコマンド:**
+前提条件が満たされたら、プロジェクトのルートから以下のコマンドを実行して、`data/`ディレクトリにデータをダウンロードします。
 ```bash
 kaggle competitions download -c house-prices-advanced-regression-techniques -p data
 ```
-This will download a zip file, which should be extracted into the `data` directory.
+これによりzipファイルがダウンロードされるので、`data`ディレクトリに展開してください。
 
-### 2. Project Structure
+### 2. プロジェクト構造
 
-A suggested project structure is as follows:
+推奨されるプロジェクト構造は以下の通りです。
 
 ```
 ├── data/
@@ -56,14 +56,38 @@ A suggested project structure is as follows:
 └── GEMINI.md
 ```
 
-## Building and Running
+## ビルドと実行
 
-*TODO: Add instructions on how to build and run the project once the code is developed.*
+*TODO: コード開発後に、プロジェクトのビルドと実行に関する指示を追加します。*
 
-## Development Conventions
+## 提出ファイルの作成
 
-*   **Code Style:** Follow PEP 8 for Python code.
-*   **Notebooks:** This project uses [Marimo](https://marimo.io/) for interactive notebooks. All notebooks are saved as standard Python (`.py`) files in the `notebooks` directory.
-*   **Source Code:** Place reusable code in the `src` directory.
-*   **Data:** Keep raw data in the `data` directory.
-*   **Dependencies:** List all Python dependencies in the `requirements.txt` file.
+モデルの学習と評価が完了したら、Kaggleに提出するためのファイルを作成します。
+
+1.  **ベストモデルの選択:** `03_model_training.py`で評価したモデルの中から、最も性能の良いモデル（例: XGBoost）を選択します。
+2.  **モデルの再学習:** 選択したモデルを、今度は**すべての**学習データ（`X`と`y_train_log`）を使って学習させます。
+3.  **テストデータでの予測:** 学習済みモデルを使い、テストデータ（`X_test`）の住宅価格を予測します。
+4.  **予測値の逆変換:** 予測された値は対数スケールになっているため、`np.expm1`を使って元の価格スケールに戻します。
+5.  **`submission.csv`の作成:** Kaggleの指定するフォーマット（`Id`と`SalePrice`の2列）に従って、提出用CSVファイルを作成します。
+
+## 開発規約
+
+*   **コードスタイル:** PythonコードはPEP 8に従います。
+*   **ノートブック:** このプロジェクトでは、インタラクティブなノートブックとして [Marimo](https://marimo.io/) を使用します。すべてのノートブックは、標準のPython（`.py`）ファイルとして`notebooks`ディレクトリに保存されます。
+*   **禁忌 (Marimoのルール):** 各セルで定義される変数は、ノートブック全体で一意である必要があります。異なるセルで同じ名前の変数を再定義できません。
+*   **ソースコード:** 再利用可能なコードは`src`ディレクトリに配置します。
+*   **データ:** 生データは`data`ディレクトリに保管します。
+*   **依存関係:** すべてのPython依存関係は`requirements.txt`ファイルに記載します。
+
+## 学習した教訓 (Marimo利用時の注意点)
+
+このプロジェクトを通して、`marimo`ノートブックを利用する上での重要な教訓がいくつか得られました。
+
+1.  **セルの出力は`return`文で:**
+    Jupyterとは異なり、Marimoのセルで計算結果（表、グラフなど）をブラウザ上に表示するには、そのオブジェクトをセルの`return`文で返す必要があります。セルの途中で評価されただけの式は表示されません。複数のオブジェクトを表示したい場合は、`mo.vstack([...])`などで一つの要素にまとめて返します。
+
+2.  **変数の単一定義ルール (禁忌):**
+    既に「開発規約」にも記載しましたが、Marimoでは同じ変数名を複数のセルで定義（再定義）することはできません。これはノートブック全体のリアクティブな動作を保証するための重要なルールです。変数名はセルごとに一意にする必要があります。
+
+3.  **日本語フォントと`matplotlib`:**
+    `japanize_matplotlib`は日本語表示に便利なライブラリですが、`seaborn`の`sns.set_theme()`のようなスタイル設定関数によって、フォント設定が上書きされてしまう場合があります。文字化けが発生した際は、`matplotlib`の`rcParams`がどのように設定されているか、また設定が上書きされていないかを確認することが重要です。今回は`sns.set_theme()`を削除することで解決しました。
